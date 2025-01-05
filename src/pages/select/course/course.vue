@@ -64,7 +64,7 @@ export default {
         console.log(res)
         let ret = res.data
         if (ret.code > 0){
-          this.error = ret.message
+          this.$message.error(ret.message)
         }else {
           ret.data.forEach(function (item){
             _this.courses.push({"id":item.id,"name":item.name})

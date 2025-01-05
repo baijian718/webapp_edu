@@ -100,6 +100,7 @@ export default {
         _this.isSubmitting = false
         if (res.data.code > 0){
           _this.$message.error(res.data.message)
+          return false
         }else {
           _this.$message.success(res.data.message)
           _this.$emit('success');
@@ -113,7 +114,7 @@ export default {
       GetCourseStudent(course_id).then(function (res){
         let data = res.data
         if (data.code > 0){
-          _this.error = data.message
+          _this.$message.error(data.message)
         }else {
           let stuId = []
           data.data.forEach(function (item) {

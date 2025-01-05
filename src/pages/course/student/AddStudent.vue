@@ -109,7 +109,7 @@ export default {
           })
         }
       } else {
-        this.error = selectT.message
+        this.$message.error(selectT.message)
       }
     },
     addStudent () {
