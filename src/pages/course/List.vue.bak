@@ -1,5 +1,5 @@
 <template>
-  <div class="custom-card">
+  <a-card>
     <div>
       <a-space class="operator">
         <a-button @click="addNew" type="primary">新增课程</a-button>
@@ -21,60 +21,81 @@
             :width="600"
         />
       </a-modal>
-      <CourseListView
+      <standard-table
           :columns="columns"
           :dataSource="dataSource"
           :rowKey="rowKey"
+          :selectedRows.sync="selectedRows"
           :pagination="{...pagination, onChange: onPageChange}"
-          @change="onPageChange"
-      />
+      >
+        <div slot="description" slot-scope="{text}">
+          {{text}}
+        </div>
+        <div slot="action" slot-scope="{text, record}">
+          <a style="margin-right: 8px" @click="addStudent(record.id)">
+            <a-icon type="plus"/> 学生管理
+          </a>
+        </div>
+      </standard-table>
+      <!-- 表单弹窗 -->
+      <a-modal
+          :visible="createStudentFormVisible"
+          :width = 800
+          title="学生管理"
+          :footer="null"
+          @cancel="addStudentClose"
+      >
+        <!-- 使用 AddStudent 组件 -->
+        <AddStudent
+            :visible="createStudentFormVisible"
+            @success="reload"
+            @close="addStudentClose"
+            ref="addStudent"
+            :formS="formData"
+            :width="600"
+         />
+
+      </a-modal>
     </div>
-  </div>
+  </a-card>
 </template>
 
 <script>
+import StandardTable from '@/components/table/StandardTable'
 import {request} from '@/utils/request'
 import AddCourse from "@/pages/course/add/AddCourse.vue";
-import CourseListView from "@/pages/course/list/CourseListView.vue";
+import AddStudent from "@/pages/course/student/AddStudent.vue";
 
 const columns = [
   {
-    title: 'ID',
-    dataIndex: 'id',
-    width: '10%',
+    title: '课程Id',
+    dataIndex: 'id'
   },
   {
     title: '课程编号',
     dataIndex: 'sn',
-    width: '10%',
   },
   {
     title: '课程名称',
     dataIndex: 'course_name',
-    width: '20%',
   },
   {
     title: '课程年月',
     dataIndex: 'year_month',
-    width: '10%',
   },
   {
     title: '课程费用',
     dataIndex: 'fee',
-    customRender: (text) => { return ((text / 100).toFixed(2)) + '元'},
-    width: '10%',
+    customRender: (text) => { return ((text / 100).toFixed(2)) + '元'}
   },
   {
     title: '创建时间',
     dataIndex: 'create_at',
-    sorter: true,
-    width: '15%',
+    sorter: true
   },
   {
     title: '操作',
-    dataIndex: 'action',
-    scopedSlots: { customRender: 'action' },
-    width: '10%',
+    scopedSlots: { customRender: 'action' }
   }
 ]
 
@@ -86,7 +107,7 @@ export default {
       return this.$form.createForm(this, { name: 'add_course' })
     }
   },
-  components: {CourseListView, AddCourse},
+  components: {AddStudent, AddCourse, StandardTable},
   data () {
     return {
       advanced: true,
@@ -126,16 +147,16 @@ export default {
       this.load()
     },
     addCourseSuccess(){
+      console.info('addCourseSuccess')
       this.load()
     },
     remove () {
       this.dataSource = this.dataSource.filter(item => this.selectedRows.findIndex(row => row.key === item.key) === -1)
       this.selectedRows = []
     },
-    onPageChange(pagination) {
-      console.log(pagination)
-      this.pagination.current = pagination.current
-      this.pagination.pageSize = pagination.pageSize
+    onPageChange(page, pageSize) {
+      this.pagination.current = page
+      this.pagination.pageSize = pageSize
       this.load()
     },
     addNew () {
@@ -144,9 +165,20 @@ export default {
         this.$refs.addCourse.open()
       })
     },
+    addStudent (courseId) {
+      console.log(courseId);
+      this.createStudentFormVisible = true
+      this.$nextTick(() => {
+        this.$refs.addStudent.makeData(courseId)
+      })
+    },
     courseCreateClose() {
+      console.info("324242423434")
       this.createCourseFormVisible = false
     },
+    addStudentClose() {
+      this.createStudentFormVisible = false
+    }
   }
 }
 </script>
@@ -166,13 +198,5 @@ export default {
   .fold {
     width: 100%;
   }
-}
-.custom-card {
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-bottom: 20px;
-  background-color: #fff;
 }
 </style>
